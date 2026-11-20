@@ -7,7 +7,7 @@ export function serviceBlockReason(
 ): string | undefined {
   const f = s.flights.find((x) => x.id === flightId),
     task = s.services.find((x) => x.flightId === flightId && x.kind === kind);
-  if (!f || f.status !== "parked") return "请先分配机位";
+  if (!f || f.status !== "parked") return "等待航班停靠机位";
   if (!task || task.status !== "pending") return "任务已派遣";
   if (
     serviceCatalog[kind].requires.some(

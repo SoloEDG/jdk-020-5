@@ -6,12 +6,8 @@ export function advanceClock(state: Shift, seconds: number): Shift {
   s.time += seconds;
   for (const f of s.flights) {
     if (f.status === "scheduled" && s.time >= f.arrival) {
-      f.status = "incoming";
-      record(s, `${f.id} 已进入进港队列`);
-    }
-    if (f.status === "departing" && s.time - (f.departureAt ?? s.time) >= 12) {
-      f.status = "departed";
-      record(s, `${f.id} 已离港，机位 ${f.standId} 释放`, "success");
+      f.status = "approach";
+      record(s, `${f.id} 加入进近序列 · 等待落地许可`);
     }
   }
   return s;

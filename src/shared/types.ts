@@ -1,9 +1,30 @@
 export type ServiceKind = "baggage" | "fuel" | "clean";
 export type FlightStatus =
-  "scheduled" | "incoming" | "parked" | "departing" | "departed";
+  | "scheduled"
+  | "approach"
+  | "arriving"
+  | "parked"
+  | "departing"
+  | "departed";
 export interface Point {
   x: number;
   y: number;
+}
+export type ClearanceMode = "full" | "segment";
+export interface RouteLeg {
+  block: string;
+  rev: boolean;
+}
+export interface MoveState {
+  route: RouteLeg[];
+  index: number;
+  dist: number;
+  mode: ClearanceMode;
+  clearedThrough: number;
+  holding: boolean;
+  entered: boolean;
+  waitReason?: string;
+  waitBlockers?: string[];
 }
 export interface Flight {
   id: string;
@@ -18,6 +39,8 @@ export interface Flight {
   status: FlightStatus;
   standId?: string;
   departureAt?: number;
+  departedAt?: number;
+  move?: MoveState;
   color: string;
 }
 export interface Stand extends Point {
@@ -51,6 +74,10 @@ export interface Event {
   text: string;
   tone: "info" | "success" | "warning";
 }
+export interface WakeMark {
+  time: number;
+  size: "narrow" | "wide";
+}
 export interface Shift {
   version: 1;
   time: number;
@@ -63,9 +90,12 @@ export interface Shift {
   services: Service[];
   vehicles: Vehicle[];
   events: Event[];
+  closures: string[];
+  wake: Record<string, WakeMark>;
   selectedFlightId: string;
   selectedStandId?: string;
   selectedVehicleId?: string;
+  selectedBlockId?: string;
   nextEventId: number;
 }
 export type CommandResult = (state: Shift) => Shift;

@@ -1,12 +1,15 @@
 import type { Shift } from "../../../shared/types";
-import { occupiedFlight, compatibleStand } from "../lib/geometry";
+import { standFlight, occupiedFlight, compatibleStand } from "../lib/geometry";
 import { Aircraft } from "./Aircraft";
+import { blocks, nodes } from "../../movement/model/network";
+import { TrafficLayer, RouteHighlight } from "../../movement";
 interface Props {
   state: Shift;
   onStand: (id: string) => void;
   onFlight: (id: string) => void;
+  onBlock: (id: string) => void;
 }
-export function ApronMap({ state, onStand, onFlight }: Props) {
+export function ApronMap({ state, onStand, onFlight, onBlock }: Props) {
   const selected = state.flights.find((f) => f.id === state.selectedFlightId);
   return (
     <section className="map-shell">
@@ -61,15 +64,26 @@ export function ApronMap({ state, onStand, onFlight }: Props) {
           strokeWidth="2"
           strokeDasharray="14 10"
         />
+        <text x="400" y="338" className="taxiway-label">
+          TAXIWAY A →
+        </text>
         <path d="M0 606H940" stroke="#858f87" strokeWidth="65" />
         <path
-          d="M0 606H940"
+          d="M40 606H900"
           stroke="#eeeade"
           strokeWidth="2"
           strokeDasharray="25 16"
         />
+        {[700, 730, 760].map((x) => (
+          <path
+            key={x}
+            d={`M${x} 588V624`}
+            stroke="#eeeade"
+            strokeWidth="6"
+          />
+        ))}
         <text x="45" y="612" className="runway-label">
-          ← TAXIWAY A
+          RWY 24 →
         </text>
         <path
           d="M75 355V605M740 355V605"
@@ -77,6 +91,23 @@ export function ApronMap({ state, onStand, onFlight }: Props) {
           strokeWidth="2"
           fill="none"
         />
+        <text x="66" y="480" className="link-label" transform="rotate(-90 66 480)">
+          W 单向 ↑
+        </text>
+        <text x="752" y="480" className="link-label" transform="rotate(90 752 480)">
+          E 单向 ↓
+        </text>
+        {["N1", "N2", "N3", "W", "E"].map((n) => (
+          <circle
+            key={n}
+            cx={nodes[n].x}
+            cy={nodes[n].y}
+            r="3.2"
+            fill="#8d9a8b"
+            stroke="#e9e7d8"
+            strokeWidth="1"
+          />
+        ))}
         <path d="M150 118H730V144H150Z" fill="#949f99" />
         <rect
           x="120"
@@ -116,8 +147,46 @@ export function ApronMap({ state, onStand, onFlight }: Props) {
             />
           </g>
         ))}
+        {["C_A01", "C_A02", "C_A03", "C_B01", "C_B02", "C_B03"].map((id) => {
+          const [a, z] = blocks[id].path;
+          return (
+            <line
+              key={id}
+              x1={a.x}
+              y1={a.y}
+              x2={z.x}
+              y2={z.y}
+              stroke="#c9c0a4"
+              strokeWidth="2"
+              strokeDasharray="6 5"
+            />
+          );
+        })}
+        <RouteHighlight state={state} />
+        {Object.values(blocks).map((blk) => {
+          const [a, z] = blk.path;
+          return (
+            <line
+              key={blk.id}
+              x1={a.x}
+              y1={a.y}
+              x2={z.x}
+              y2={z.y}
+              stroke={
+                state.selectedBlockId === blk.id ? "#cf8b4a" : "transparent"
+              }
+              strokeWidth={blk.kind === "runway" ? 40 : 20}
+              strokeOpacity={state.selectedBlockId === blk.id ? 0.35 : 0}
+              className="block-hit"
+              onClick={() => onBlock(blk.id)}
+            >
+              <title>{blk.label}</title>
+            </line>
+          );
+        })}
         {state.stands.map((stand) => {
-          const f = occupiedFlight(state, stand.id),
+          const f = standFlight(state, stand.id),
+            reserved = occupiedFlight(state, stand.id),
             active = state.selectedStandId === stand.id;
           const compatible = selected && compatibleStand(stand, selected);
           return (
@@ -160,7 +229,7 @@ export function ApronMap({ state, onStand, onFlight }: Props) {
                   y={stand.y - 2}
                   color={f.color}
                   wide={f.size === "wide"}
-                  departing={f.status === "departing"}
+                  departing={false}
                 />
               ) : (
                 <text
@@ -199,7 +268,17 @@ export function ApronMap({ state, onStand, onFlight }: Props) {
                   {f.id}
                 </text>
               )}
-              {!f && selected?.status === "incoming" && compatible && (
+              {!f && reserved && (
+                <text
+                  x={stand.x}
+                  y={stand.y + 4}
+                  textAnchor="middle"
+                  className="stand-reserved"
+                >
+                  ⇢ {reserved.id}
+                </text>
+              )}
+              {!f && selected?.status === "approach" && compatible && (
                 <circle
                   cx={stand.x + 67}
                   cy={stand.y - 65}
@@ -266,6 +345,7 @@ export function ApronMap({ state, onStand, onFlight }: Props) {
             )}
           </g>
         ))}
+        <TrafficLayer state={state} onFlight={onFlight} />
         <g transform="translate(880 60)">
           <circle r="25" fill="#f3f1e8" fillOpacity=".8" />
           <path d="M0 -17L6 10L0 5L-6 10Z" fill="#334d50" />
@@ -294,6 +374,14 @@ export function ApronMap({ state, onStand, onFlight }: Props) {
         <span>
           <i className="legend-selected" />
           当前选择
+        </span>
+        <span>
+          <i className="legend-wait" />
+          等待
+        </span>
+        <span>
+          <i className="legend-closed" />
+          封闭段
         </span>
         <span className="map-scale">0 ━━━━━ 100 m</span>
       </div>

@@ -1,9 +1,10 @@
 import type { ServiceKind, Shift } from "../shared/types";
 import { clockLabel } from "../shared/document";
-import { flightReady, departFlight, statusLabels } from "../features/flights";
+import { statusLabels } from "../features/flights";
 import { StandPicker } from "../features/apron";
 import { ServicePanel } from "../features/services";
 import { EventLog } from "../features/session";
+import { FlowPanel, BlockPanel } from "../features/movement";
 export function Inspector({
   state,
   onChange,
@@ -50,7 +51,7 @@ export function Inspector({
         </span>
       </div>
       <StandPicker state={state} onAssign={onAssign} onSelect={onStand} />
-      {f.status !== "incoming" && f.status !== "scheduled" && (
+      {f.status !== "approach" && f.status !== "scheduled" && f.standId && (
         <div className="stand-occupancy">
           <span>机位 {f.standId} · 服务位</span>
           <b>
@@ -66,19 +67,8 @@ export function Inspector({
         </div>
       )}
       <ServicePanel state={state} onDispatch={onDispatch} />
-      <button
-        className="primary depart-button"
-        data-testid="depart"
-        disabled={!flightReady(state, f.id) || f.status !== "parked"}
-        onClick={() => onChange(departFlight(state, f.id))}
-      >
-        {f.status === "departed"
-          ? "已完成离港"
-          : f.status === "departing"
-            ? "飞机正在推出…"
-            : "批准推出离港"}{" "}
-        <span>→</span>
-      </button>
+      <FlowPanel state={state} onChange={onChange} />
+      <BlockPanel state={state} onChange={onChange} />
       <EventLog state={state} />
     </aside>
   );

@@ -3,6 +3,7 @@ import { FlightBoard, assignStand, selectFlight } from "../features/flights";
 import { ApronMap, selectStand } from "../features/apron";
 import { FleetPanel, selectVehicle } from "../features/fleet";
 import { dispatchService } from "../features/services";
+import { selectBlock } from "../features/movement";
 import {
   SessionBar,
   ScoreStrip,
@@ -70,6 +71,7 @@ export function App() {
               state={state}
               onStand={(id) => setState((s) => selectStand(s, id))}
               onFlight={(id) => setState((s) => selectFlight(s, id))}
+              onBlock={(id) => setState((s) => selectBlock(s, id))}
             />
             <FleetPanel
               state={state}
@@ -90,7 +92,7 @@ export function App() {
         </div>
         <footer>
           <span>APRON 07 · 地面有序，天空自由。</span>
-          <span>操作提示：选择航班 → 分配机位 → 派遣车辆 → 批准离港</span>
+          <span>操作提示：分配机位 → 签发落地许可 → 派遣车辆 → 批准推出</span>
           <span>
             <i className="live-dot" />
             {state.paused ? "SIMULATION PAUSED" : "SIMULATION LIVE"}

@@ -1,14 +1,17 @@
 import type { Shift } from "../../../shared/types";
+import { blocks } from "../../movement/model/network";
 const kinds = ["fuel", "baggage", "clean"];
 const flightStates = [
   "scheduled",
-  "incoming",
+  "approach",
+  "arriving",
   "parked",
   "departing",
   "departed",
 ];
 const serviceStates = ["pending", "travel", "working", "done"];
 const vehicleStates = ["idle", "travel", "working", "returning"];
+const blockIdSet = new Set(Object.keys(blocks));
 type Row = Record<string, unknown>;
 function row(value: unknown): value is Row {
   return typeof value === "object" && value !== null;
@@ -36,6 +39,44 @@ function collection(value: unknown, length: number): value is Row[] {
     unique(value)
   );
 }
+function validMove(value: unknown): boolean {
+  if (!row(value)) return false;
+  const route = value.route;
+  if (
+    !Array.isArray(route) ||
+    route.length === 0 ||
+    !route.every(
+      (leg) =>
+        row(leg) &&
+        typeof leg.block === "string" &&
+        blockIdSet.has(leg.block) &&
+        typeof leg.rev === "boolean",
+    )
+  )
+    return false;
+  const legs = route as { block: string; rev: boolean }[];
+  if (
+    !Number.isInteger(value.index) ||
+    (value.index as number) < 0 ||
+    (value.index as number) >= legs.length ||
+    !finite(value.dist) ||
+    value.dist < 0 ||
+    value.dist > blocks[legs[value.index as number].block].length + 1e-6 ||
+    !["full", "segment"].includes(value.mode as string) ||
+    !Number.isInteger(value.clearedThrough) ||
+    (value.clearedThrough as number) < (value.index as number) ||
+    (value.clearedThrough as number) >= legs.length ||
+    typeof value.holding !== "boolean" ||
+    typeof value.entered !== "boolean"
+  )
+    return false;
+  return (
+    (value.waitReason === undefined || typeof value.waitReason === "string") &&
+    (value.waitBlockers === undefined ||
+      (Array.isArray(value.waitBlockers) &&
+        value.waitBlockers.every((b) => typeof b === "string")))
+  );
+}
 export function validShift(value: unknown): value is Shift {
   if (
     !row(value) ||
@@ -57,6 +98,25 @@ export function validShift(value: unknown): value is Shift {
     !collection(value.services, 18) ||
     !Array.isArray(value.events) ||
     value.events.length > 30
+  )
+    return false;
+  if (
+    !Array.isArray(value.closures) ||
+    !value.closures.every((c) => typeof c === "string" && blockIdSet.has(c)) ||
+    new Set(value.closures).size !== value.closures.length
+  )
+    return false;
+  if (!row(value.wake)) return false;
+  const wake = value.wake as Row;
+  if (
+    !Object.entries(wake).every(
+      ([k, w]) =>
+        blockIdSet.has(k) &&
+        row(w) &&
+        finite(w.time) &&
+        w.time >= 0 &&
+        ["narrow", "wide"].includes(w.size as string),
+    )
   )
     return false;
   const flights = value.flights,
@@ -82,7 +142,18 @@ export function validShift(value: unknown): value is Shift {
         f.passengers > 0 &&
         text(f.color) &&
         (f.departureAt === undefined || finite(f.departureAt)) &&
-        (f.standId === undefined || standIds.has(f.standId)),
+        (f.departedAt === undefined || finite(f.departedAt)) &&
+        (f.standId === undefined || standIds.has(f.standId)) &&
+        (f.move === undefined || validMove(f.move)),
+    )
+  )
+    return false;
+  // 移动状态只出现在滑行中的航班上
+  if (
+    !flights.every(
+      (f) =>
+        (f.move !== undefined) ===
+        ["arriving", "departing"].includes(f.status as string),
     )
   )
     return false;
@@ -137,19 +208,32 @@ export function validShift(value: unknown): value is Shift {
     )
   )
     return false;
+  // 机位占用唯一：已分配未离港、且尚未滑出联络线的航班
   const occupied = flights
-    .filter((f) => f.status !== "departed" && f.standId !== undefined)
+    .filter(
+      (f) =>
+        f.standId !== undefined &&
+        f.status !== "departed" &&
+        !(
+          f.status === "departing" &&
+          row(f.move) &&
+          (f.move.index as number) >= 1
+        ),
+    )
     .map((f) => f.standId);
   if (new Set(occupied).size !== occupied.length) return false;
   if (
     !flights.every(
       (f) =>
         !["parked", "departing", "departed"].includes(f.status as string) ||
+        f.standId === undefined ||
         (standIds.has(f.standId) &&
           (f.size === "narrow" ||
             stands.find((s) => s.id === f.standId)?.size === "wide")),
     )
   )
+    return false;
+  if (!flights.every((f) => f.status !== "parked" || standIds.has(f.standId)))
     return false;
   if (
     !services.every((s) => {
@@ -222,6 +306,9 @@ export function validShift(value: unknown): value is Shift {
     (value.selectedStandId === undefined ||
       standIds.has(value.selectedStandId)) &&
     (value.selectedVehicleId === undefined ||
-      vehicleIds.has(value.selectedVehicleId))
+      vehicleIds.has(value.selectedVehicleId)) &&
+    (value.selectedBlockId === undefined ||
+      (typeof value.selectedBlockId === "string" &&
+        blockIdSet.has(value.selectedBlockId)))
   );
 }

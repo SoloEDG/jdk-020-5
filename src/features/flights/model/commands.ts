@@ -1,18 +1,15 @@
 import type { Shift } from "../../../shared/types";
 import { copyShift, record } from "../../../shared/document";
-import { flightReady } from "../lib/readiness";
+import { compatibleStand, standReserved } from "../../apron/lib/geometry";
 export function assignStand(state: Shift, id: string, standId: string): Shift {
   const s = copyShift(state),
     f = s.flights.find((x) => x.id === id),
     stand = s.stands.find((x) => x.id === standId);
   if (!f || !stand) return state;
-  const occupied = s.flights.some(
-    (x) => x.standId === standId && x.status !== "departed",
-  );
   if (
-    f.status !== "incoming" ||
-    occupied ||
-    (f.size === "wide" && stand.size !== "wide")
+    f.status !== "approach" ||
+    standReserved(s, standId) ||
+    !compatibleStand(stand, f)
   ) {
     s.conflicts++;
     s.score -= 10;
@@ -20,25 +17,8 @@ export function assignStand(state: Shift, id: string, standId: string): Shift {
     return s;
   }
   f.standId = standId;
-  f.status = "parked";
   s.selectedStandId = standId;
-  record(s, `${id} 已停靠 ${standId}，可开始保障`, "success");
-  return s;
-}
-export function departFlight(state: Shift, id: string): Shift {
-  const s = copyShift(state),
-    f = s.flights.find((x) => x.id === id);
-  if (!f) return state;
-  if (f.status !== "parked" || !flightReady(s, id)) {
-    record(s, "离港未获许可：请先完成全部地勤任务", "warning");
-    return s;
-  }
-  f.status = "departing";
-  f.departureAt = s.time;
-  const delay = Math.max(0, s.time - f.deadline);
-  const points = Math.max(20, 120 - Math.floor(delay));
-  s.score += points;
-  record(s, `${id} 获准推出 · +${points} 分`, "success");
+  record(s, `${id} 已分配 ${standId} · 等待落地许可`, "success");
   return s;
 }
 export function selectFlight(state: Shift, id: string): Shift {

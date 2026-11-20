@@ -17,8 +17,10 @@ export function createShift(): Shift {
     services: initialServices(flights),
     vehicles: initialVehicles(),
     events: [
-      { id: 0, time: 0, text: "早班开始 · 3 架航班等待机位分配", tone: "info" },
+      { id: 0, time: 0, text: "早班开始 · 3 架航班进近，等待落地许可", tone: "info" },
     ],
+    closures: [],
+    wake: {},
     selectedFlightId: "MU2451",
     nextEventId: 1,
   };

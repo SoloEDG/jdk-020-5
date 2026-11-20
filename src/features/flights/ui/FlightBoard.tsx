@@ -1,6 +1,7 @@
 import type { Shift } from "../../../shared/types";
 import { clockLabel } from "../../../shared/document";
 import { statusLabels, turnaroundProgress } from "../lib/readiness";
+import { waitInfoFor } from "../../movement";
 interface Props {
   state: Shift;
   onSelect: (id: string) => void;
@@ -36,6 +37,7 @@ export function FlightBoard({ state, onSelect }: Props) {
               </span>
               <strong>{f.id}</strong>
               <span className={`status ${f.status}`}>
+                {f.move && waitInfoFor(state, f) ? "⏸ " : ""}
                 {statusLabels[f.status]}
               </span>
             </div>

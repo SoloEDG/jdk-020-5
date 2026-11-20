@@ -1,5 +1,5 @@
 import type { Shift } from "../../../shared/types";
-import { compatibleStand, occupiedFlight } from "../lib/geometry";
+import { compatibleStand, standReserved } from "../lib/geometry";
 export function StandPicker({
   state,
   onAssign,
@@ -10,7 +10,7 @@ export function StandPicker({
   onSelect: (id: string) => void;
 }) {
   const f = state.flights.find((x) => x.id === state.selectedFlightId);
-  if (!f || f.status !== "incoming") return null;
+  if (!f || f.status !== "approach") return null;
   const valid = state.stands.find((s) => s.id === state.selectedStandId);
   return (
     <div className="stand-picker">
@@ -19,7 +19,7 @@ export function StandPicker({
         {state.stands.map((s) => (
           <button
             key={s.id}
-            disabled={!!occupiedFlight(state, s.id) || !compatibleStand(s, f)}
+            disabled={standReserved(state, s.id) || !compatibleStand(s, f)}
             className={s.id === state.selectedStandId ? "chosen" : ""}
             onClick={() => onSelect(s.id)}
           >
@@ -33,7 +33,7 @@ export function StandPicker({
         data-testid="assign-stand"
         disabled={
           !valid ||
-          !!occupiedFlight(state, valid.id) ||
+          standReserved(state, valid.id) ||
           !compatibleStand(valid, f)
         }
         onClick={() => valid && onAssign(valid.id)}

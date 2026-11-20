@@ -1201,3 +1201,205 @@ footer > span:last-child {
     transition: none !important;
   }
 }
+/* ——— 跑道/滑行道通行系统 ——— */
+.taxiway-label {
+  fill: #9aa392;
+  font: 500 12px "Barlow Condensed", sans-serif;
+  letter-spacing: 3px;
+}
+.link-label {
+  fill: #a8b19e;
+  font: 500 9px "Barlow Condensed", sans-serif;
+  letter-spacing: 2px;
+}
+.block-hit {
+  cursor: pointer;
+}
+.block-hit:hover {
+  stroke: #d79a4e;
+  stroke-opacity: 0.3;
+}
+.traffic-marker {
+  cursor: pointer;
+}
+.traffic-label {
+  font: 600 10px "Barlow Condensed", sans-serif;
+  fill: #40565a;
+  letter-spacing: 1px;
+  paint-order: stroke;
+  stroke: #f0eee2;
+  stroke-width: 3px;
+}
+.traffic-wait {
+  font-size: 11px;
+}
+.wait-ring {
+  fill: none;
+  stroke: #d29a4e;
+  stroke-width: 2;
+  stroke-dasharray: 4 4;
+  animation: pulse 1.5s infinite;
+}
+.closure-label {
+  fill: #a8443c;
+  font: 600 10px "Barlow Condensed", sans-serif;
+  letter-spacing: 1px;
+}
+.approach-tag {
+  fill: #7c8b7f;
+  font: 500 8px "Barlow Condensed", sans-serif;
+  letter-spacing: 2px;
+}
+.legend-wait {
+  background: #d9a55a;
+  border-color: #d9a55a !important;
+  border-radius: 50% !important;
+}
+.legend-closed {
+  background: repeating-linear-gradient(45deg, #c0554a 0 2px, #efe9dc 2px 4px);
+}
+.flow-panel {
+  margin-top: 20px;
+  border-top: 1px solid #e0e4d6;
+  padding-top: 15px;
+}
+.flow-panel .subheading {
+  margin-bottom: 11px;
+}
+.flow-buttons {
+  display: flex;
+  gap: 7px;
+  margin-top: 11px;
+}
+.flow-buttons .primary,
+.flow-buttons .secondary {
+  flex: 1;
+  justify-content: center;
+  padding: 11px 8px;
+}
+.flow-note {
+  font-size: 8px;
+  color: #9ba48f;
+  line-height: 1.9;
+  margin-top: 10px;
+}
+.route-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: 4px;
+}
+.route-chip {
+  font: 500 8px "Barlow Condensed", sans-serif;
+  letter-spacing: 0.5px;
+  padding: 4px 6px;
+  border-radius: 3px;
+  border: 1px solid #d9dccb;
+  color: #8b9787;
+  background: #f2f3ea;
+}
+.route-chip.current {
+  border-color: #d79a4e;
+  background: #f9e9d2;
+  color: #a5713a;
+}
+.route-chip.cleared {
+  border-color: #8fb39b;
+  background: #e6efe7;
+  color: #577d63;
+}
+.route-chip.passed {
+  opacity: 0.45;
+  text-decoration: line-through;
+}
+.move-status {
+  display: flex;
+  justify-content: space-between;
+  font-size: 9px;
+  color: #7d8c7c;
+  margin: 8px 0 6px;
+}
+.hold-tag {
+  color: #b0824a;
+  font-weight: 500;
+}
+.wait-box {
+  margin-top: 11px;
+  border: 1px solid #e3cf9f;
+  background: #fbf3df;
+  border-radius: 6px;
+  padding: 10px 11px;
+  font-size: 9px;
+  color: #8a734f;
+}
+.wait-box.deadlock {
+  border-color: #cf8a72;
+  background: #fbe9dd;
+  color: #96543c;
+}
+.wait-box strong {
+  display: block;
+  font-size: 10px;
+  margin-bottom: 4px;
+}
+.wait-chain {
+  margin-top: 7px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  border-top: 1px dashed #ddc9a3;
+  padding-top: 7px;
+}
+.wait-chain span {
+  font-family: monospace;
+  font-size: 8px;
+}
+.resolution-list {
+  margin-top: 9px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.resolve {
+  background: #fff;
+  border: 1px solid #d8b489;
+  border-radius: 4px;
+  color: #8a6535;
+  font-size: 9px;
+  padding: 7px 9px;
+  text-align: left;
+}
+.resolve:hover {
+  background: #fdf6e9;
+}
+.block-panel {
+  margin-top: 18px;
+  border: 1px solid #ddd9c4;
+  background: #f5f4ea;
+  border-radius: 7px;
+  padding: 13px;
+}
+.panel-close {
+  background: none;
+  border: 0;
+  color: #9aa48e;
+  font-size: 11px;
+  padding: 2px 5px;
+}
+.block-facts {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-size: 9px;
+  color: #7d8a76;
+  margin-bottom: 11px;
+}
+.block-panel .full {
+  width: 100%;
+  justify-content: center;
+}
+.stand-reserved {
+  fill: #8a9779;
+  font: 500 11px "Barlow Condensed", sans-serif;
+  letter-spacing: 1px;
+}

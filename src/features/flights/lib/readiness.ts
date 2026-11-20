@@ -17,8 +17,9 @@ export function delaySeconds(flight: Flight, time: number): number {
 }
 export const statusLabels: Record<Flight["status"], string> = {
   scheduled: "计划到达",
-  incoming: "等待机位",
+  approach: "等待落地",
+  arriving: "滑行进位",
   parked: "地勤保障",
-  departing: "正在推出",
+  departing: "推出滑行",
   departed: "已离港",
 };
